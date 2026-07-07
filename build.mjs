@@ -7,9 +7,10 @@ const __dir = dirname(fileURLToPath(import.meta.url));
 const src  = (p) => join(__dir, 'src', p);
 const dist = (p) => join(__dir, p);
 
-const css    = readFileSync(src('widget.css'),      'utf8');
-const js     = readFileSync(src('widget.js'),       'utf8');
-const svgRaw = readFileSync(join(__dir, 'svg', 'text.svg'), 'utf8').trim();
+const css         = readFileSync(src('widget.css'), 'utf8');
+const js          = readFileSync(src('widget.js'),  'utf8');
+const svgSimple   = readFileSync(join(__dir, 'svg', 'text-simple.svg'), 'utf8').trim();
+const svgHanddrawn = readFileSync(join(__dir, 'svg', 'text.svg'),        'utf8').trim();
 
 // Adjust font path for root-level outputs
 const cssRoot = css.replace(
@@ -17,8 +18,8 @@ const cssRoot = css.replace(
   "url('./HelloGorgeous-Script.ttf')"
 );
 
-// SVG variant: remove clip-path attributes so stroke paths show unclipped
-const svgNoClip = svgRaw.replace(/\s*clip-path="url\([^"]*\)"/g, '');
+const svgSimpleNoClip    = svgSimple.replace(/\s*clip-path="url\([^"]*\)"/g, '');
+const svgHanddrawnNoClip = svgHanddrawn.replace(/\s*clip-path="url\([^"]*\)"/g, '');
 
 // ── Widget HTML builder ──────────────────────────────────────────────────────
 // Controls are rendered by React at runtime - the div is just a mount point.
@@ -46,16 +47,22 @@ const w1 = widget({
 const w2 = widget({
   title:    'Approach 2 - Stroke without clippath',
   subtitle: 'stroke-dashoffset animation on the raw pen trajectory - notice the strokes escape the letter outlines',
-  content:  svgNoClip,
+  content:  svgSimpleNoClip,
 });
 
 const w3 = widget({
-  title:    'Approach 3 - Stroke with clippath',
-  subtitle: 'The pen stroke is clipped to the letter shapes via &lt;clipPath&gt; - ink only shows inside the glyphs',
-  content:  svgRaw,
+  title:    'Approach 3 - Stroke with clippath, simple pen path',
+  subtitle: 'Pen path traces the letters closely - clipped to the glyph shapes',
+  content:  svgSimple,
 });
 
-const allWidgets = [w1, w2, w3].join('\n\n');
+const w4 = widget({
+  title:    'Approach 4 - Stroke with clippath, hand-drawn pen path',
+  subtitle: 'Pen path overshoots and loops naturally - clipped so ink stays inside the glyphs',
+  content:  svgHanddrawn,
+});
+
+const allWidgets = [w1, w2, w3, w4].join('\n\n');
 
 // ── CDN scripts ──────────────────────────────────────────────────────────────
 
