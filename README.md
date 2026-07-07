@@ -38,7 +38,7 @@ You need Inkscape.
 
 ### 1. Type your text
 
-Use a script font (this demo uses [Hello Gorgeous](https://www.dafont.com/hello-gorgeous.font)). Type your word as a text object, then convert it to a path: **Path > Object to Path**.
+Use a script font for the most natural handwriting look (this demo uses [Hello Gorgeous](https://www.dafont.com/hello-gorgeous.font)), though any font works. Type your word as a text object, then convert it to a path: **Path > Object to Path**.
 
 These filled glyph paths become the letter shapes (`#text1`, `#text2`, ...).
 
