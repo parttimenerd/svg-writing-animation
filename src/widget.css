@@ -1,0 +1,175 @@
+@font-face {
+  font-family: 'Hello Gorgeous';
+  src: url('../HelloGorgeous-Script.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Widget shell ──────────────────────────────────────────── */
+
+.wh-widget {
+  --wh-bg:     #0a0a0a;
+  --wh-fg:     #ffffff;
+  --wh-accent: #cd0000;
+  --wh-muted:  #555;
+  --wh-border: #2a2a2a;
+  --wh-font-script: 'Hello Gorgeous', cursive;
+
+  background: var(--wh-bg);
+  color: var(--wh-fg);
+  font-family: system-ui, -apple-system, sans-serif;
+  border: 1px solid var(--wh-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wh-widget + .wh-widget {
+  margin-top: 2rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+
+.wh-header {
+  padding: 0.75rem 1.25rem 0.5rem;
+  border-bottom: 1px solid var(--wh-border);
+}
+
+.wh-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wh-fg);
+  margin: 0 0 0.2rem;
+}
+
+.wh-subtitle {
+  font-size: 0.7rem;
+  color: var(--wh-muted);
+  margin: 0;
+}
+
+/* ── Stage (animation area) ─────────────────────────────────── */
+
+.wh-stage {
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  background: #0d0d0d;
+}
+
+/* ── Wipe text ──────────────────────────────────────────────── */
+
+.wh-wipe-text {
+  font-family: var(--wh-font-script);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  color: var(--wh-fg);
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 1.4;
+  clip-path: inset(-50% 100% -50% 0);
+  -webkit-clip-path: inset(-50% 100% -50% 0);
+}
+
+/* ── SVG ────────────────────────────────────────────────────── */
+
+.wh-stage svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  overflow: visible;
+}
+
+.wh-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--wh-border);
+  flex-wrap: wrap;
+}
+
+.wh-btn {
+  background: transparent;
+  color: var(--wh-fg);
+  border: 1px solid #444;
+  padding: 0.35rem 0.85rem;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  min-width: 6.5rem;
+  text-align: center;
+}
+
+.wh-btn:hover       { border-color: var(--wh-accent); color: var(--wh-accent); }
+.wh-btn--active     { border-color: var(--wh-fg); }
+
+.wh-scrub {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--wh-accent);
+  cursor: pointer;
+}
+
+/* ── CSS live editor (CodeMirror 5) ─────────────────────────────────────── */
+
+.wh-css-editor {
+  border-top: 1px solid var(--wh-border);
+}
+
+/* Fit CodeMirror to our widget styling */
+.wh-css-editor .CodeMirror {
+  background: #0d0d0d;
+  font-size: 0.65rem;
+  line-height: 1.65;
+  height: auto;
+}
+
+.wh-css-editor .CodeMirror-scroll {
+  padding: 1.25rem 1.5rem;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+/* ── Details collapsibles (CSS / HTML panels) ───────────────────────────── */
+
+.wh-details {
+  border-top: 1px solid var(--wh-border);
+}
+
+.wh-details-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wh-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.wh-details-summary::-webkit-details-marker { display: none; }
+
+.wh-details-summary::before {
+  content: '▶';
+  font-size: 0.55rem;
+  transition: transform 0.15s;
+}
+
+.wh-details[open] > .wh-details-summary::before {
+  transform: rotate(90deg);
+}
+
+.wh-details-summary:hover { color: var(--wh-fg); }
