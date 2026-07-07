@@ -46,16 +46,14 @@ These filled glyph paths become the letter shapes (`#text1`, `#text2`, ...).
 
 For each stroke, manually trace *how a pen would actually write* the letters using the Bezier tool - follow the natural writing order, without lifting the pen where possible.
 
-The stroke path needs these style properties (set via the XML editor):
+The stroke path needs these style properties (set via the XML editor or Fill and Stroke dialog):
 
 ```
 fill: none
-stroke: #cd0000        (or any color)
-stroke-dasharray: N    (N = path length)
-stroke-dashoffset: N
+stroke: #cd0000   (or any color)
 ```
 
-To get the path length: draw the path, then run `document.querySelector('#clippath1').getTotalLength()` in the browser console, or read it from Inkscape's XML editor after applying a dashed stroke.
+Inkscape will automatically write `stroke-dasharray` and `stroke-dashoffset` when you apply a dashed stroke style to the path. Set the dash length equal to the path length (readable from the XML editor or via `getTotalLength()` in the browser console).
 
 ### 3. Add the clipPath stencils (approach 3 only)
 
