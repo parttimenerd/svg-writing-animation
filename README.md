@@ -8,7 +8,7 @@ An interactive demo comparing three approaches to animating handwritten SVG text
 
 I learned this technique while building a friend's wedding page.
 
-Live demo: https://bcelary.github.io/svg-writing-animation/ *(replace with your GitHub Pages URL)*
+Live demo: https://parttimenerd.github.io/svg-writing-animation/
 
 ---
 
