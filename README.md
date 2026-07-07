@@ -80,7 +80,7 @@ data-durations="500,300,800"   (duration in ms per stroke path, comma-separated)
 
 ### 5. Export and build
 
-Save as **Plain SVG**, replace the SVG file in `src/`, update the filename in `build.mjs`, then:
+Save as **Plain SVG**, replace `svg/text.svg`, then:
 
 ```
 node build.mjs

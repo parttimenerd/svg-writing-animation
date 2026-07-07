@@ -9,7 +9,7 @@ const dist = (p) => join(__dir, p);
 
 const css    = readFileSync(src('widget.css'),      'utf8');
 const js     = readFileSync(src('widget.js'),       'utf8');
-const svgRaw = readFileSync(src('wir-heiraten.svg'), 'utf8').trim();
+const svgRaw = readFileSync(join(__dir, 'svg', 'text.svg'), 'utf8').trim();
 
 // Adjust font path for root-level outputs
 const cssRoot = css.replace(
@@ -40,7 +40,7 @@ function widget({ title, subtitle, content }) {
 const w1 = widget({
   title:    'Approach 1 - Simple wipe',
   subtitle: 'clip-path: inset(-50% X% -50% 0) - a horizontal reveal from left to right',
-  content:  `<span class="wh-wipe-text" aria-label="Wir heiraten">Wir heiraten</span>`,
+  content:  `<span class="wh-wipe-text" aria-label="text">text</span>`,
 });
 
 const w2 = widget({
@@ -50,7 +50,7 @@ const w2 = widget({
 });
 
 const w3 = widget({
-  title:    'Approach 3 - Stroke with clippath (chril.in)',
+  title:    'Approach 3 - Stroke with clippath',
   subtitle: 'The pen stroke is clipped to the letter shapes via &lt;clipPath&gt; - ink only shows inside the glyphs',
   content:  svgRaw,
 });
@@ -80,7 +80,7 @@ const indexHtml = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wir heiraten - Writing Simulation</title>
+  <title>SVG writing animation</title>
   ${cmCss.map(href => `<link rel="stylesheet" href="${href}">`).join('\n  ')}
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -107,7 +107,7 @@ const indexHtml = `<!doctype html>
 </head>
 <body>
   <div class="page-wrap">
-    <h1>Writing simulation - Wir heiraten</h1>
+    <h1>SVG writing animation</h1>
     ${allWidgets}
   </div>
   ${cdnScripts}
