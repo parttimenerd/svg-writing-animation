@@ -2,9 +2,9 @@
 
 An interactive demo comparing three approaches to animating handwritten SVG text:
 
-1. **Clip-path wipe** — reveals text left-to-right using `clip-path: inset()`
-2. **Raw stroke** — animates the pen trajectory via `stroke-dashoffset`, strokes escape the letter outlines
-3. **Clipped stroke** — same technique, but the stroke is clipped to the filled glyph shapes so ink only shows inside the letters
+1. **Clip-path wipe** - reveals text left-to-right using `clip-path: inset()`
+2. **Raw stroke** - animates the pen trajectory via `stroke-dashoffset`, strokes escape the letter outlines
+3. **Clipped stroke** - same technique, but the stroke is clipped to the filled glyph shapes so ink only shows inside the letters
 
 I learned this technique while building a friend's wedding page.
 
@@ -28,7 +28,7 @@ The core trick for approaches 2 and 3:
 }
 ```
 
-The SVG path already has `stroke-dasharray` and `stroke-dashoffset` set as inline styles by Inkscape. Animating `dashoffset` to 0 slides the dash into view — the line draws itself.
+The SVG path already has `stroke-dasharray` and `stroke-dashoffset` set as inline styles by Inkscape. Animating `dashoffset` to 0 slides the dash into view - the line draws itself.
 
 ---
 
@@ -40,11 +40,11 @@ You need Inkscape.
 
 Use a script font (this demo uses [Hello Gorgeous](https://www.dafont.com/hello-gorgeous.font)). Type your word as a text object, then convert it to a path: **Path > Object to Path**.
 
-These filled glyph paths become the letter shapes (`#text1`, `#text2`, …).
+These filled glyph paths become the letter shapes (`#text1`, `#text2`, ...).
 
 ### 2. Draw the pen trajectory
 
-For each stroke, manually trace *how a pen would actually write* the letters using the Bezier tool — follow the natural writing order, without lifting the pen where possible.
+For each stroke, manually trace *how a pen would actually write* the letters using the Bezier tool - follow the natural writing order, without lifting the pen where possible.
 
 The stroke path needs these style properties (set via the XML editor):
 
@@ -75,12 +75,12 @@ Add these attributes to the `<svg>` element via the XML editor:
 
 ```
 data-draw-color="white"
-data-durations="700,4000"   (per-path durations in ms, comma-separated)
+data-durations="500,300,800"   (duration in ms per stroke path, comma-separated)
 ```
 
 ### 5. Export and build
 
-Save as **Plain SVG**, replace `src/wir-heiraten.svg`, then:
+Save as **Plain SVG**, replace the SVG file in `src/`, update the filename in `build.mjs`, then:
 
 ```
 node build.mjs
@@ -92,7 +92,7 @@ This writes `index.html` and `wordpress-block.html`.
 
 ## Running locally
 
-No build step needed beyond `build.mjs`. Serve the root directory:
+Serve the root directory with any static file server:
 
 ```
 python3 -m http.server 8080
