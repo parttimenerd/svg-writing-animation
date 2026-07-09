@@ -135,6 +135,12 @@
   height: auto;
 }
 
+.wh-css-editor .CodeMirror *,
+.wh-css-editor .CodeMirror-line,
+.wh-css-editor .CodeMirror-line span {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace !important;
+}
+
 .wh-css-editor .CodeMirror-scroll {
   padding: 1.25rem 1.5rem;
   box-sizing: border-box;
