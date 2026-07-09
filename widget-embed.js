@@ -640,7 +640,8 @@ span.CodeMirror-selectedtext { background: none; }
 /* Fit CodeMirror to our widget styling */
 .wh-css-editor .CodeMirror {
   background: #0d0d0d;
-  font-size: 0.65rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
   line-height: 1.65;
   height: auto;
 }
