@@ -69,7 +69,8 @@
   color: var(--wh-fg);
   white-space: nowrap;
   display: inline-block;
-  line-height: 1.4;
+  line-height: 1.6;
+  padding: 0.4em 0.1em;
   clip-path: inset(-50% 100% -50% 0);
   -webkit-clip-path: inset(-50% 100% -50% 0);
 }

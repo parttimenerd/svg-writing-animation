@@ -33,6 +33,8 @@
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
+  var whInstanceCounter = 0;
+
   function ensureKeyframes() {
     if (document.getElementById('wh-keyframes')) return;
     var s = document.createElement('style');
@@ -65,10 +67,11 @@
 
   function WipeAnimation(root) {
     this.text     = root.querySelector('.wh-wipe-text');
-    this.duration = 1800;
+    this.duration = 2800;
   }
 
   WipeAnimation.prototype.reset = function () {
+    this.text.style.animation = 'none';
     this.text.style.transition = 'none';
     this._apply(0);
   };
@@ -84,23 +87,27 @@
   WipeAnimation.prototype.getDuration = function ()  { return this.duration; };
 
   WipeAnimation.prototype.getHtmlSnippet = function () {
-    return '<span class="wh-wipe-text">Wir heiraten</span>';
+    return '<span class="wh-wipe-text">Let\'s party!</span>';
   };
 
   WipeAnimation.prototype.getCssSnippet = function () {
     var dur = (this.duration / 1000).toFixed(1) + 's';
     return [
       '/* clip-path: inset(top right bottom left)',
-      ' * mdn: https://developer.mozilla.org/en-US/docs/Web/CSS/clip-path',
-      ' * Top/bottom -50% covers ascenders/descenders. Left stays 0.',
-      ' * Right inset: 100% = hidden, 0% = revealed. */',
+      ' * Shrinking the right inset from 100% → 0% sweeps a',
+      ' * reveal window across the text, left to right.',
+      ' * Negative top/bottom (-50%) prevent the clip from cutting',
+      ' * off ascenders (letters like "h", "l") and descenders ("y", "p").',
+      ' * mdn clip-path:  https://developer.mozilla.org/en-US/docs/Web/CSS/clip-path',
+      ' * mdn animation:  https://developer.mozilla.org/en-US/docs/Web/CSS/animation',
+      ' * mdn @keyframes: https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes */',
       '.wh-wipe-text {',
-      '  clip-path: inset(-50% 100% -50% 0);',
       '  animation: wipe-reveal ' + dur + ' linear forwards;',
       '}',
       '',
       '@keyframes wipe-reveal {',
-      '  to { clip-path: inset(-50% 0% -50% 0); }',
+      '  from { clip-path: inset(-50% 100% -50% 0); } /* right=100%: fully hidden */',
+      '  to   { clip-path: inset(-50%   0% -50% 0); } /* right=  0%: fully revealed */',
       '}',
     ].join('\n');
   };
@@ -109,6 +116,12 @@
 
   function StrokeAnimation(root) {
     this.svg = root.querySelector('svg');
+    // Give this SVG a unique ID so injected CSS rules can be scoped to it,
+    // avoiding collisions when multiple widgets share the same element IDs.
+    if (!this.svg.id) {
+      this.svg.id = 'wh-svg-' + (++whInstanceCounter);
+    }
+    this.svgId = this.svg.id;
     this.drawColor = this.svg.getAttribute('data-draw-color') || 'white';
     var rawDur = this.svg.getAttribute('data-durations') || '700,4000';
     this.durations = rawDur.split(',').map(Number);
@@ -134,7 +147,7 @@
     });
 
     this.glyphs = sortedByNumber(
-      this.svg.querySelectorAll('[id^="text"]'), 'text'
+      this.svg.querySelectorAll('path[id^="text"]'), 'text'
     ).map(function (el) {
       return { el: el, originalStyle: el.getAttribute('style') || '' };
     });
@@ -158,7 +171,6 @@
   StrokeAnimation.prototype._prepareStrokes = function () {
     var self = this;
     this.strokes.forEach(function (seg) {
-      seg.el.style.animation = 'none';
       seg.el.style.display   = '';
       seg.el.style.setProperty('stroke',  self.drawColor, 'important');
       seg.el.style.setProperty('fill',    'none',         'important');
@@ -168,14 +180,18 @@
 
   StrokeAnimation.prototype._hideGlyphs = function () {
     this.glyphs.forEach(function (g) {
-      g.el.style.setProperty('fill',   'none', 'important');
-      g.el.style.setProperty('stroke', 'none', 'important');
+      // Keep fill set (clipPath stencil needs it) but hide visually with opacity.
+      // visibility:hidden and display:none break the <use href="#textN"> stencil reference.
+      g.el.style.removeProperty('visibility');
+      g.el.style.removeProperty('display');
+      g.el.style.setProperty('opacity', '0', 'important');
     });
   };
 
   StrokeAnimation.prototype._showGlyphs = function () {
     this.strokes.forEach(function (seg) { seg.el.style.display = 'none'; });
     this.glyphs.forEach(function (g) {
+      g.el.style.removeProperty('opacity');
       g.el.setAttribute('style', g.originalStyle);
     });
   };
@@ -184,19 +200,17 @@
   // Used by both StrokeOnly and StrokeClipped snippets.
   StrokeAnimation.prototype._dashComment = function () {
     var lens = this.strokes.map(function (s) { return Math.round(s.len); });
+    // dasharray=N makes one dash the full path length; dashoffset=N hides it.
+    // Animating dashoffset → 0 slides the dash into view: the line draws itself.
+    // mdn: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset
     return [
-      '/* stroke-dasharray / stroke-dashoffset - the drawing trick',
+      '/* stroke-dashoffset animation - the self-drawing trick',
+      ' * dasharray=N  one dash covering the full path length',
+      ' * dashoffset=N shifts it off-screen (invisible)',
+      ' * animate to 0 → slides back into view',
       ' * mdn: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset',
       ' *',
-      ' * The SVG paths have stroke-dasharray and stroke-dashoffset set as inline',
-      ' * styles (see HTML tab) - Inkscape writes these automatically when you',
-      ' * export a path with a dashed stroke. dasharray=N makes one dash the full',
-      ' * path length. dashoffset=N shifts it off so the path starts invisible.',
-      ' * Animating dashoffset to 0 slides it back: the line draws itself.',
-      ' *',
-      ' * Lengths: ' + lens.map(function(l, i){ return '#clippath'+(i+1)+'='+l; }).join(', ') + '.',
-      ' *',
-      ' * Each path has its own delay so strokes sequence one after another. */',
+      ' * Path lengths: ' + lens.map(function(l, i){ return '#clippath'+(i+1)+'='+l; }).join(', ') + ' */',
     ].join('\n');
   };
 
@@ -243,14 +257,27 @@
   };
 
   StrokeOnlyAnimation.prototype.getCssSnippet = function () {
-    var lines = [ this._dashComment(), '' ];
+    var scope = '#' + this.svgId + ' ';
+    var lens  = this.strokes.map(function (s) { return Math.round(s.len); });
+    var lines = [
+      '/* stroke-dasharray / stroke-dashoffset — the self-drawing trick',
+      ' * dasharray: N   — one dash exactly as long as the path (covers it entirely)',
+      ' * dashoffset: N  — shifts that dash off-screen so the stroke is invisible',
+      ' * Animating dashoffset → 0 slides the dash back in, drawing the path.',
+      ' * mdn stroke-dashoffset: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset',
+      ' * mdn animation:         https://developer.mozilla.org/en-US/docs/Web/CSS/animation',
+      ' * mdn @keyframes:        https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes',
+      ' *',
+      ' * Path lengths (px): ' + lens.map(function (l, i) { return '#clippath' + (i + 1) + ' = ' + l; }).join(', ') + ' */',
+      '',
+    ];
     this.strokes.forEach(function (seg, i) {
       var dur = (seg.dur / 1000).toFixed(2).replace(/\.?0+$/, '') + 's';
       var del = seg.delayMs > 0
         ? (seg.delayMs / 1000).toFixed(2).replace(/\.?0+$/, '') + 's'
         : '0s';
       lines.push(
-        '#clippath' + (i + 1) + ' {',
+        scope + '#clippath' + (i + 1) + ' {',
         '  animation: draw ' + dur + ' linear ' + del + ' forwards;',
         '}',
         ''
@@ -299,25 +326,33 @@
     this.clippathShowing = !this.clippathShowing;
     var self = this;
     if (self.clippathShowing) {
-      // Back to clipped: restore clip-path, full opacity, hide glyphs.
+      // Back to clipped: restore clip-path, hide glyphs (opacity 0 keeps clipPath stencil intact).
       this.strokes.forEach(function (seg) {
         if (seg.originalClipPath) seg.el.setAttribute('clip-path', seg.originalClipPath);
         seg.el.style.setProperty('opacity', '1', 'important');
         seg.el.style.display = '';
+        seg.el.style.strokeDashoffset = '0';
       });
       this.glyphs.forEach(function (g) {
-        g.el.style.setProperty('fill',   'none', 'important');
-        g.el.style.setProperty('stroke', 'none', 'important');
+        g.el.style.removeProperty('fill');
+        g.el.style.removeProperty('stroke');
+        g.el.style.removeProperty('visibility');
+        g.el.style.setProperty('opacity', '0', 'important');
       });
     } else {
-      // Raw stroke: remove clip-path, half opacity, show glyphs behind.
+      // Raw stroke: remove clip-path so strokes overshoot the glyphs; show glyphs at low opacity as a ghost.
       this.strokes.forEach(function (seg) {
         seg.el.removeAttribute('clip-path');
-        seg.el.style.setProperty('opacity', '0.5', 'important');
+        seg.el.style.setProperty('opacity', '1', 'important');
         seg.el.style.display = '';
+        // Ensure stroke is fully drawn (dashoffset=0) regardless of prior state.
+        seg.el.style.strokeDashoffset = '0';
       });
       this.glyphs.forEach(function (g) {
-        g.el.setAttribute('style', g.originalStyle);
+        g.el.style.removeProperty('visibility');
+        g.el.style.setProperty('fill',    'currentColor', 'important');
+        g.el.style.setProperty('stroke',  'none',         'important');
+        g.el.style.setProperty('opacity', '0.25',         'important');
       });
     }
     return this.clippathShowing;
@@ -370,42 +405,38 @@
   };
 
   StrokeClippedAnimation.prototype.getCssSnippet = function () {
-    var lines = [];
-
-    this.strokes.forEach(function (seg, i) {
-      var n = i + 1;
-      lines.push(
-        '#clippath' + n + ' {',
-        '  clip-path: ' + seg.originalClipPath + ';',
-        '}',
-        ''
-      );
-    });
-
-    lines.push(
-      this._dashComment(),
-      ''
-    );
-
+    var scope = '#' + this.svgId + ' ';
+    var lens  = this.strokes.map(function (s) { return Math.round(s.len); });
+    var lines = [
+      '/* stroke-dasharray / stroke-dashoffset — the self-drawing trick',
+      ' * dasharray: N   — one dash exactly as long as the path (covers it entirely)',
+      ' * dashoffset: N  — shifts that dash off-screen so the stroke is invisible',
+      ' * Animating dashoffset → 0 slides the dash back in, drawing the path.',
+      ' * mdn: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset',
+      ' *',
+      ' * The clip-path on each stroke path (set as an HTML attribute) confines',
+      ' * the ink to its glyph stencil — so overshooting loops stay invisible.',
+      ' *',
+      ' * Path lengths (px): ' + lens.map(function (l, i) { return '#clippath' + (i + 1) + ' = ' + l; }).join(', ') + ' */',
+      '',
+    ];
     this.strokes.forEach(function (seg, i) {
       var dur = (seg.dur / 1000).toFixed(2).replace(/\.?0+$/, '') + 's';
       var del = seg.delayMs > 0
         ? (seg.delayMs / 1000).toFixed(2).replace(/\.?0+$/, '') + 's'
         : '0s';
       lines.push(
-        '#clippath' + (i + 1) + ' {',
+        scope + '#clippath' + (i + 1) + ' {',
         '  animation: draw ' + dur + ' linear ' + del + ' forwards;',
         '}',
         ''
       );
     });
-
     lines.push(
       '@keyframes draw {',
       '  to { stroke-dashoffset: 0; }',
       '}'
     );
-
     return lines.join('\n');
   };
 
@@ -473,36 +504,57 @@
 
       var playGen = 0;
 
+      function stripAnimationFromStyle(el) {
+        var s = el.getAttribute('style') || '';
+        // Remove 'animation: ...' and all its sub-properties from the inline style string.
+        // removeProperty() doesn't reliably remove the animation shorthand when it was
+        // set via el.style.animation = 'none' (serializes as a multi-part shorthand).
+        var cleaned = s
+          .replace(/\s*animation(-[a-z-]+)?:[^;]+;?/g, '')
+          .trim();
+        el.setAttribute('style', cleaned);
+      }
+
       function triggerCssPlay() {
         if (!anim) return;
         playGen++;
         var gen = playGen;
         var tag = document.getElementById(styleId);
         if (!tag) return;
-        // Rename keyframes so the browser treats them as a new animation.
-        var css = cm.getValue()
-          .replace(/\bwipe-reveal\b/g, 'wipe-reveal-' + gen)
-          .replace(/\bdraw\b/g, 'draw-' + gen);
-        tag.textContent = css;
-        // Clear animation/dashoffset inline styles so CSS @keyframes takes over,
-        // but keep stroke/fill/opacity set by _prepareStrokes.
+
         if (anim.strokes) {
+          // Step 1: strip any lingering inline animation, set dasharray/dashoffset
+          // so the path starts fully hidden and CSS can animate it.
           anim.strokes.forEach(function(seg){
-            seg.el.style.animation        = '';
-            seg.el.style.strokeDasharray  = '';
-            seg.el.style.strokeDashoffset = '';
-            seg.el.style.display          = '';
+            stripAnimationFromStyle(seg.el);
+            // dasharray needs !important to override SVG attribute; dashoffset must NOT
+            // use !important so the CSS @keyframes animation can override it.
+            seg.el.style.setProperty('stroke-dasharray', '' + seg.len, 'important');
+            seg.el.style.strokeDashoffset = seg.len;
+            seg.el.style.display = '';
             seg.el.style.setProperty('stroke',  anim.drawColor, 'important');
             seg.el.style.setProperty('fill',    'none',         'important');
             seg.el.style.setProperty('opacity', '1',            'important');
           });
           if (anim._hideGlyphs) anim._hideGlyphs();
+          // Step 2: force reflow so the browser commits the state before
+          // we inject the renamed keyframe.
+          void anim.strokes[0].el.getBoundingClientRect();
         }
+
         if (anim.text) {
-          anim.text.style.clipPath       = '';
-          anim.text.style.webkitClipPath = '';
-          anim.text.style.animation      = '';
+          stripAnimationFromStyle(anim.text);
+          anim.text.style.removeProperty('clip-path');
+          anim.text.style.removeProperty('-webkit-clip-path');
+          void anim.text.getBoundingClientRect();
         }
+
+        // Step 3: inject renamed keyframes — browser sees a fresh animation name
+        // and starts it from the beginning.
+        var css = cm.getValue()
+          .replace(/\bwipe-reveal\b/g, 'wipe-reveal-' + gen)
+          .replace(/\bdraw\b/g, 'draw-' + gen);
+        tag.textContent = css;
       }
 
       if (mode === 'css') {
@@ -594,10 +646,19 @@
       rafRef.current = requestAnimationFrame(tick);
     }
 
+    function resetKeepingToggle() {
+      var wasClipped = clipped;
+      anim.reset();
+      // If raw-stroke was active before reset, re-apply it without flipping clipped state.
+      if (!wasClipped && anim.toggleClippath) {
+        anim.clippathShowing = true; // reset() set it true; toggleClippath flips to false
+        anim.toggleClippath();
+      }
+    }
+
     function play() {
       if (showingResult.current || progress >= 1) {
-        anim.reset();
-        setClipped(true);
+        resetKeepingToggle();
         setProgress(0);
         showingResult.current = false;
         startProgRef.current  = 0;
@@ -615,8 +676,7 @@
       pause();
       showingResult.current = false;
       var t = parseFloat(e.target.value);
-      anim.reset();
-      setClipped(true);
+      resetKeepingToggle();
       setProgress(t);
       anim.setProgress(t);
     }
