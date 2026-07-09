@@ -133,9 +133,44 @@ ${cdnScripts}
 ${js}
 </script>`;
 
+// ── widget-N.html (standalone iframe-embeddable pages) ───────────────────────
+
+function widgetPage(widgetHtml) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  ${cmCss.map(href => `<link rel="stylesheet" href="${href}">`).join('\n  ')}
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #060606; padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }
+    ${cssRoot}
+  </style>
+</head>
+<body>
+  ${widgetHtml}
+  ${cdnScripts}
+  <script>
+${js}
+  </script>
+</body>
+</html>`;
+}
+
+const w1page = widgetPage(w1);
+const w2page = widgetPage(w2);
+const w3page = widgetPage(w3);
+
 writeFileSync(dist('index.html'),           indexHtml, 'utf8');
 writeFileSync(dist('wordpress-block.html'), wpBlock,   'utf8');
+writeFileSync(dist('widget-1.html'),        w1page,    'utf8');
+writeFileSync(dist('widget-2.html'),        w2page,    'utf8');
+writeFileSync(dist('widget-3.html'),        w3page,    'utf8');
 
 console.log('Built:');
 console.log('  index.html           (' + indexHtml.length + ' B)');
 console.log('  wordpress-block.html (' + wpBlock.length   + ' B)');
+console.log('  widget-1.html        (' + w1page.length    + ' B)');
+console.log('  widget-2.html        (' + w2page.length    + ' B)');
+console.log('  widget-3.html        (' + w3page.length    + ' B)');
