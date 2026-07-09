@@ -3,4 +3,6 @@ wordpress-block.html
 widget-1.html
 widget-2.html
 widget-3.html
+test-embed.html
+node_modules/
 .playwright-mcp/

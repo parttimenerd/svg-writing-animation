@@ -22,13 +22,9 @@
  *   data-durations="700,4000"   Per-path durations in ms, id order (1, 2, …)
  *   data-draw-color="white"     Stroke colour used during animation
  */
-(function () {
-  if (window.__whLoaded) return;
-  window.__whLoaded = true;
+(function (React, ReactDOM, htm, CodeMirror) {
+  'use strict';
 
-  var htm      = window.htm;
-  var React    = window.React;
-  var ReactDOM = window.ReactDOM;
   var html     = htm.bind(React.createElement);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -454,7 +450,7 @@
     var elRef   = useRef(null);
 
     useEffect(function () {
-      if (!window.CodeMirror || !elRef.current) return;
+      if (!CodeMirror || !elRef.current) return;
 
       var cm = CodeMirror(elRef.current, {
         value:          snippet,
@@ -765,4 +761,12 @@
   } else {
     initAll();
   }
-})();
+
+  return { initAll: initAll };
+
+}(
+  typeof React    !== 'undefined' ? React    : null,
+  typeof ReactDOM !== 'undefined' ? ReactDOM : null,
+  typeof htm      !== 'undefined' ? htm      : null,
+  typeof CodeMirror !== 'undefined' ? CodeMirror : null
+));
