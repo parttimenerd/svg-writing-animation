@@ -144,7 +144,7 @@ function widgetPage(widgetHtml) {
   ${cmCss.map(href => `<link rel="stylesheet" href="${href}">`).join('\n  ')}
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #060606; padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #060606; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     ${cssRoot}
   </style>
 </head>
